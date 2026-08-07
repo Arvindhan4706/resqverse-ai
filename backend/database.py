@@ -1,26 +1,25 @@
 import os
-import shutil
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# Check if running in Vercel Serverless environment
-is_vercel = os.environ.get("VERCEL") == "1"
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_FILE = os.path.join(BASE_DIR, "resqverse.db")
+# Use DATABASE_URL if provided (e.g., in Vercel/Supabase), otherwise fallback to local SQLite
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
-if is_vercel:
-    # Vercel filesystem is read-only, except for /tmp
-    TMP_DB_PATH = "/tmp/resqverse.db"
-    # If a seeded database exists, copy it to /tmp so we can read and write to it
-    if not os.path.exists(TMP_DB_PATH) and os.path.exists(DB_FILE):
-        shutil.copy2(DB_FILE, TMP_DB_PATH)
-    SQLALCHEMY_DATABASE_URL = f"sqlite:///{TMP_DB_PATH}"
+if DATABASE_URL:
+    # SQLAlchemy 1.4+ requires "postgresql://" instead of "postgres://"
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    
+    SQLALCHEMY_DATABASE_URL = DATABASE_URL
+    # For Postgres, we don't need check_same_thread
+    engine = create_engine(SQLALCHEMY_DATABASE_URL)
 else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    DB_FILE = os.path.join(BASE_DIR, "resqverse.db")
     SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_FILE}"
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
