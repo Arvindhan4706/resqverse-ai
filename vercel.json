@@ -1,4 +1,5 @@
 {
+  "name": "resqverse-ai",
   "builds": [
     {
       "src": "frontend/package.json",
