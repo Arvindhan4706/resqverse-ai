@@ -1,92 +1,4 @@
-const BASE_URL = import.meta.env.PROD ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:8000/api');
-
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    ...options,
-  });
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.detail || `API error: ${response.status}`);
-  }
-  return response.json();
-}
-
-export const api = {
-  get: <T>(path: string) => request<T>(path),
-  post: <T>(path: string, body: unknown) => request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
-  patch: <T>(path: string, body: unknown) => request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
-  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
-};
-
-// Typed API helpers
-export const incidentsApi = {
-  list: (params?: Record<string, string>) => {
-    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-    return api.get<Incident[]>(`/incidents${qs}`);
-  },
-  get: (id: number) => api.get<Incident>(`/incidents/${id}`),
-  create: (data: Partial<Incident>) => api.post<Incident>('/incidents/', data),
-  update: (id: number, data: Partial<Incident>) => api.patch<Incident>(`/incidents/${id}`, data),
-};
-
-export const analyticsApi = {
-  summary: () => api.get<AnalyticsSummary>('/analytics/summary'),
-};
-
-export const recommendationsApi = {
-  list: (params?: Record<string, string>) => {
-    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-    return api.get<AgentRecommendation[]>(`/recommendations${qs}`);
-  },
-  get: (id: number) => api.get<AgentRecommendation>(`/recommendations/${id}`),
-  approve: (id: number, approvedBy: string) =>
-    api.post<AgentRecommendation>(`/recommendations/${id}/approve`, { approved_by: approvedBy }),
-  reject: (id: number, rejectedBy: string, reason: string) =>
-    api.post<AgentRecommendation>(`/recommendations/${id}/reject`, { rejected_by: rejectedBy, reason }),
-};
-
-export const hospitalsApi = {
-  list: () => api.get<Hospital[]>('/hospitals/'),
-};
-
-export const sheltersApi = {
-  list: () => api.get<Shelter[]>('/shelters/'),
-};
-
-export const resourcesApi = {
-  list: (params?: Record<string, string>) => {
-    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-    return api.get<Resource[]>(`/resources${qs}`);
-  },
-};
-
-export const respondersApi = {
-  list: (params?: Record<string, string>) => {
-    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-    return api.get<Responder[]>(`/responders${qs}`);
-  },
-};
-
-export const sensorsApi = {
-  list: () => api.get<IoTSensor[]>('/sensors/'),
-};
-
-export const dronesApi = {
-  list: () => api.get<Drone[]>('/drones/'),
-};
-
-export const auditApi = {
-  list: () => api.get<AuditLog[]>('/audit/'),
-};
-
-export const simulationsApi = {
-  list: () => api.get<SimulationScenario[]>('/simulations/'),
-  create: (data: Partial<SimulationScenario>) => api.post<SimulationScenario>('/simulations/', data),
-  start: (id: number) => api.post<SimulationScenario>(`/simulations/${id}/start`, {}),
-  pause: (id: number) => api.post<SimulationScenario>(`/simulations/${id}/pause`, {}),
-  stop: (id: number) => api.post<SimulationScenario>(`/simulations/${id}/stop`, {}),
-};
+import { supabase } from './supabase';
 
 // Types matching the backend models
 export interface Incident {
@@ -102,6 +14,7 @@ export interface Incident {
   affected_population: number;
   created_at: string;
   updated_at: string;
+  created_by: string;
   is_simulated: boolean;
 }
 
@@ -117,6 +30,7 @@ export interface Hospital {
   available_icu: number;
   contact_number: string;
   is_operational: boolean;
+  is_simulated: boolean;
 }
 
 export interface Shelter {
@@ -131,6 +45,20 @@ export interface Shelter {
   has_medical: boolean;
   has_food: boolean;
   contact_person: string;
+  is_simulated: boolean;
+}
+
+export interface Responder {
+  id: number;
+  name: string;
+  role: string;
+  status: string;
+  latitude: number;
+  longitude: number;
+  team: string;
+  contact_number: string;
+  specialization: string;
+  is_simulated: boolean;
 }
 
 export interface Resource {
@@ -138,22 +66,21 @@ export interface Resource {
   name: string;
   resource_type: string;
   category: string;
-  status: 'available' | 'deployed' | 'maintenance';
+  status: string;
   quantity: number;
   unit: string;
   latitude: number;
   longitude: number;
+  assigned_to: string;
+  is_simulated: boolean;
 }
 
-export interface Responder {
+export interface ResourceDeployment {
   id: number;
-  name: string;
-  role: string;
-  status: 'available' | 'deployed' | 'off_duty';
-  latitude: number;
-  longitude: number;
-  team: string;
-  specialization: string;
+  incident_id: number;
+  resource_id: number;
+  deployed_at: string;
+  status: string;
 }
 
 export interface IoTSensor {
@@ -169,6 +96,7 @@ export interface IoTSensor {
   threshold_warning: number;
   threshold_critical: number;
   last_updated: string;
+  is_simulated: boolean;
 }
 
 export interface Drone {
@@ -182,6 +110,8 @@ export interface Drone {
   battery_level: number;
   mission: string;
   assigned_incident_id: number | null;
+  last_updated: string;
+  is_simulated: boolean;
 }
 
 export interface AgentRecommendation {
@@ -192,11 +122,11 @@ export interface AgentRecommendation {
   reasoning: string;
   confidence: number;
   risk_level: string;
-  data_used: Record<string, unknown>;
+  data_used: Record<string, any>;
   requires_human_approval: boolean;
   status: 'pending' | 'approved' | 'rejected';
-  approved_by: string | null;
-  approved_at: string | null;
+  approved_by?: string;
+  approved_at?: string;
   created_at: string;
 }
 
@@ -206,7 +136,7 @@ export interface AuditLog {
   entity_type: string;
   entity_id: number;
   performed_by: string;
-  details: Record<string, unknown>;
+  details: Record<string, any>;
   created_at: string;
 }
 
@@ -216,26 +146,234 @@ export interface SimulationScenario {
   scenario_type: string;
   severity: number;
   status: 'idle' | 'running' | 'paused' | 'completed';
-  parameters: Record<string, unknown>;
+  parameters: Record<string, any>;
   created_at: string;
-  started_at: string | null;
-  ended_at: string | null;
+  started_at?: string;
+  ended_at?: string;
 }
 
 export interface AnalyticsSummary {
   total_incidents: number;
   active_incidents: number;
-  critical_incidents: number;
   people_affected: number;
-  available_responders: number;
-  total_responders: number;
-  available_vehicles: number;
-  shelter_capacity: number;
-  shelter_occupancy: number;
-  shelter_occupancy_pct: number;
-  hospital_beds_total: number;
-  hospital_beds_available: number;
-  hospital_occupancy_pct: number;
-  pending_approvals: number;
-  sensor_critical_alerts: number;
+  active_responders: number;
+  available_shelter_capacity: number;
+  available_icu_beds: number;
+  active_drones: number;
+  critical_sensors: number;
 }
+
+// API methods using Supabase
+
+export const incidentsApi = {
+  list: async (params?: Record<string, string>) => {
+    let query = supabase.from('incidents').select('*').order('created_at', { ascending: false });
+    if (params?.status) {
+      query = query.eq('status', params.status);
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as Incident[];
+  },
+  get: async (id: number) => {
+    const { data, error } = await supabase.from('incidents').select('*').eq('id', id).single();
+    if (error) throw error;
+    return data as Incident;
+  },
+  create: async (data: Partial<Incident>) => {
+    const { data: created, error } = await supabase.from('incidents').insert([data]).select().single();
+    if (error) throw error;
+    return created as Incident;
+  },
+  update: async (id: number, data: Partial<Incident>) => {
+    const { data: updated, error } = await supabase.from('incidents').update(data).eq('id', id).select().single();
+    if (error) throw error;
+    return updated as Incident;
+  }
+};
+
+export const hospitalsApi = {
+  list: async () => {
+    const { data, error } = await supabase.from('hospitals').select('*');
+    if (error) throw error;
+    return data as Hospital[];
+  }
+};
+
+export const sheltersApi = {
+  list: async () => {
+    const { data, error } = await supabase.from('shelters').select('*');
+    if (error) throw error;
+    return data as Shelter[];
+  }
+};
+
+export const resourcesApi = {
+  list: async (params?: Record<string, string>) => {
+    let query = supabase.from('resources').select('*');
+    if (params?.status) {
+      query = query.eq('status', params.status);
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as Resource[];
+  }
+};
+
+export const respondersApi = {
+  list: async (params?: Record<string, string>) => {
+    let query = supabase.from('responders').select('*');
+    if (params?.status) {
+      query = query.eq('status', params.status);
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as Responder[];
+  }
+};
+
+export const sensorsApi = {
+  list: async () => {
+    const { data, error } = await supabase.from('iot_sensors').select('*');
+    if (error) throw error;
+    return data as IoTSensor[];
+  }
+};
+
+export const dronesApi = {
+  list: async () => {
+    const { data, error } = await supabase.from('drones').select('*');
+    if (error) throw error;
+    return data as Drone[];
+  }
+};
+
+export const recommendationsApi = {
+  list: async (params?: Record<string, string>) => {
+    let query = supabase.from('agent_recommendations').select('*').order('created_at', { ascending: false });
+    if (params?.status) {
+      query = query.eq('status', params.status);
+    }
+    const { data, error } = await query;
+    if (error) throw error;
+    return data as AgentRecommendation[];
+  },
+  get: async (id: number) => {
+    const { data, error } = await supabase.from('agent_recommendations').select('*').eq('id', id).single();
+    if (error) throw error;
+    return data as AgentRecommendation;
+  },
+  approve: async (id: number, approvedBy: string) => {
+    const { data, error } = await supabase.from('agent_recommendations')
+      .update({ status: 'approved', approved_by: approvedBy, approved_at: new Date().toISOString() })
+      .eq('id', id)
+      .select().single();
+    if (error) throw error;
+    
+    await supabase.from('audit_logs').insert([{
+      action: 'recommendation_approved',
+      entity_type: 'recommendation',
+      entity_id: id,
+      performed_by: approvedBy,
+      details: { status: 'approved' }
+    }]);
+    
+    return data as AgentRecommendation;
+  },
+  reject: async (id: number, rejectedBy: string, reason: string) => {
+    const { data, error } = await supabase.from('agent_recommendations')
+      .update({ status: 'rejected' })
+      .eq('id', id)
+      .select().single();
+    if (error) throw error;
+    
+    await supabase.from('audit_logs').insert([{
+      action: 'recommendation_rejected',
+      entity_type: 'recommendation',
+      entity_id: id,
+      performed_by: rejectedBy,
+      details: { reason }
+    }]);
+    
+    return data as AgentRecommendation;
+  }
+};
+
+export const auditApi = {
+  list: async () => {
+    const { data, error } = await supabase.from('audit_logs').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    return data as AuditLog[];
+  }
+};
+
+// Start simulation now runs purely on the frontend by executing the TS AI agents
+import { runSimulationIteration } from './agents/orchestrator';
+
+export const simulationsApi = {
+  list: async () => {
+    const { data, error } = await supabase.from('simulation_scenarios').select('*');
+    if (error) throw error;
+    return data as SimulationScenario[];
+  },
+  create: async (data: Partial<SimulationScenario>) => {
+    const { data: created, error } = await supabase.from('simulation_scenarios').insert([data]).select().single();
+    if (error) throw error;
+    return created as SimulationScenario;
+  },
+  start: async (id: number) => {
+    const { data: updated, error } = await supabase.from('simulation_scenarios')
+      .update({ status: 'running', started_at: new Date().toISOString() })
+      .eq('id', id).select().single();
+    if (error) throw error;
+    
+    // Fire and forget the simulation iteration
+    runSimulationIteration(id).catch(console.error);
+    
+    return updated as SimulationScenario;
+  },
+  pause: async (id: number) => {
+    const { data: updated, error } = await supabase.from('simulation_scenarios')
+      .update({ status: 'paused' })
+      .eq('id', id).select().single();
+    if (error) throw error;
+    return updated as SimulationScenario;
+  },
+  stop: async (id: number) => {
+    const { data: updated, error } = await supabase.from('simulation_scenarios')
+      .update({ status: 'completed', ended_at: new Date().toISOString() })
+      .eq('id', id).select().single();
+    if (error) throw error;
+    return updated as SimulationScenario;
+  }
+};
+
+// Derived from existing data since we no longer have a python backend to aggregate it
+export const analyticsApi = {
+  summary: async (): Promise<AnalyticsSummary> => {
+    const [incidents, shelters, hospitals, responders, drones, sensors] = await Promise.all([
+      supabase.from('incidents').select('*'),
+      supabase.from('shelters').select('*'),
+      supabase.from('hospitals').select('*'),
+      supabase.from('responders').select('*'),
+      supabase.from('drones').select('*'),
+      supabase.from('iot_sensors').select('*')
+    ]);
+
+    const activeIncidents = (incidents.data || []).filter(i => i.status === 'active');
+    const totalAffected = activeIncidents.reduce((sum, inc) => sum + (inc.affected_population || 0), 0);
+    const availableShelter = (shelters.data || []).reduce((sum, s) => sum + ((s.total_capacity || 0) - (s.current_occupancy || 0)), 0);
+    const availableIcu = (hospitals.data || []).reduce((sum, h) => sum + (h.available_icu || 0), 0);
+    
+    return {
+      total_incidents: (incidents.data || []).length,
+      active_incidents: activeIncidents.length,
+      people_affected: totalAffected,
+      active_responders: (responders.data || []).filter(r => r.status === 'deployed').length,
+      available_shelter_capacity: availableShelter,
+      available_icu_beds: availableIcu,
+      active_drones: (drones.data || []).filter(d => d.status === 'airborne').length,
+      critical_sensors: (sensors.data || []).filter(s => s.last_reading >= s.threshold_critical).length
+    };
+  }
+};
