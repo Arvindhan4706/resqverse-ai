@@ -43,28 +43,28 @@ function BatteryBar({ level }: { level: number }) {
 // ── Mock Data ──────────────────────────────────────────────────────────────
 
 const MOCK_RESOURCES: Resource[] = [
-  { id: 1, name: 'Ambulance Unit 01', resource_type: 'vehicle', category: 'ambulance', status: 'deployed', quantity: 1, unit: 'unit', latitude: 13.0, longitude: 80.2 },
-  { id: 2, name: 'Water Pump Set A', resource_type: 'equipment', category: 'pump', status: 'available', quantity: 3, unit: 'units', latitude: 13.0, longitude: 80.2 },
-  { id: 3, name: 'Rescue Boat RB-7', resource_type: 'vehicle', category: 'rescue_boat', status: 'deployed', quantity: 1, unit: 'unit', latitude: 13.0, longitude: 80.2 },
-  { id: 4, name: 'Emergency Food Packs', resource_type: 'food', category: 'food_supply', status: 'available', quantity: 500, unit: 'packs', latitude: 13.0, longitude: 80.2 },
-  { id: 5, name: 'Medical Kit Alpha', resource_type: 'medical_supply', category: 'first_aid', status: 'available', quantity: 50, unit: 'kits', latitude: 13.0, longitude: 80.2 },
-  { id: 6, name: 'Fire Truck F-3', resource_type: 'vehicle', category: 'fire_truck', status: 'maintenance', quantity: 1, unit: 'unit', latitude: 13.0, longitude: 80.2 },
+  { id: 1, name: 'Ambulance Unit 01', resource_type: 'vehicle', category: 'ambulance', status: 'deployed', quantity: 1, unit: 'unit', latitude: 13.0, longitude: 80.2, assigned_to: '', is_simulated: true },
+  { id: 2, name: 'Water Pump Set A', resource_type: 'equipment', category: 'pump', status: 'available', quantity: 3, unit: 'units', latitude: 13.0, longitude: 80.2, assigned_to: '', is_simulated: true },
+  { id: 3, name: 'Rescue Boat RB-7', resource_type: 'vehicle', category: 'rescue_boat', status: 'deployed', quantity: 1, unit: 'unit', latitude: 13.0, longitude: 80.2, assigned_to: '', is_simulated: true },
+  { id: 4, name: 'Emergency Food Packs', resource_type: 'food', category: 'food_supply', status: 'available', quantity: 500, unit: 'packs', latitude: 13.0, longitude: 80.2, assigned_to: '', is_simulated: true },
+  { id: 5, name: 'Medical Kit Alpha', resource_type: 'medical_supply', category: 'first_aid', status: 'available', quantity: 50, unit: 'kits', latitude: 13.0, longitude: 80.2, assigned_to: '', is_simulated: true },
+  { id: 6, name: 'Fire Truck F-3', resource_type: 'vehicle', category: 'fire_truck', status: 'maintenance', quantity: 1, unit: 'unit', latitude: 13.0, longitude: 80.2, assigned_to: '', is_simulated: true },
 ];
 
 const MOCK_RESPONDERS: Responder[] = [
-  { id: 1, name: 'Arjun Sharma', role: 'paramedic', status: 'available', latitude: 13.0, longitude: 80.2, team: 'Alpha', specialization: 'Trauma Care' },
-  { id: 2, name: 'Priya Nair', role: 'firefighter', status: 'deployed', latitude: 13.0, longitude: 80.2, team: 'Bravo', specialization: 'Structural Fires' },
-  { id: 3, name: 'Rajan Kumar', role: 'rescue_diver', status: 'available', latitude: 13.0, longitude: 80.2, team: 'Alpha', specialization: 'Swift Water Rescue' },
-  { id: 4, name: 'Meena Pillai', role: 'coordinator', status: 'deployed', latitude: 13.0, longitude: 80.2, team: 'Command', specialization: 'Logistics' },
-  { id: 5, name: 'Vignesh Rajan', role: 'paramedic', status: 'off_duty', latitude: 13.0, longitude: 80.2, team: 'Charlie', specialization: 'Pediatric Care' },
-  { id: 6, name: 'Divya Krishnan', role: 'firefighter', status: 'available', latitude: 13.0, longitude: 80.2, team: 'Bravo', specialization: 'Hazmat Response' },
+  { id: 1, name: 'Arjun Sharma', role: 'paramedic', status: 'available', latitude: 13.0, longitude: 80.2, team: 'Alpha', specialization: 'Trauma Care', contact_number: '', is_simulated: true },
+  { id: 2, name: 'Priya Nair', role: 'firefighter', status: 'deployed', latitude: 13.0, longitude: 80.2, team: 'Bravo', specialization: 'Structural Fires', contact_number: '', is_simulated: true },
+  { id: 3, name: 'Rajan Kumar', role: 'rescue_diver', status: 'available', latitude: 13.0, longitude: 80.2, team: 'Alpha', specialization: 'Swift Water Rescue', contact_number: '', is_simulated: true },
+  { id: 4, name: 'Meena Pillai', role: 'coordinator', status: 'deployed', latitude: 13.0, longitude: 80.2, team: 'Command', specialization: 'Logistics', contact_number: '', is_simulated: true },
+  { id: 5, name: 'Vignesh Rajan', role: 'paramedic', status: 'off_duty', latitude: 13.0, longitude: 80.2, team: 'Charlie', specialization: 'Pediatric Care', contact_number: '', is_simulated: true },
+  { id: 6, name: 'Divya Krishnan', role: 'firefighter', status: 'available', latitude: 13.0, longitude: 80.2, team: 'Bravo', specialization: 'Hazmat Response', contact_number: '', is_simulated: true },
 ];
 
 const MOCK_DRONES: Drone[] = [
-  { id: 1, drone_id: 'DRN-001', model: 'DJI Matrice 300', status: 'airborne', latitude: 13.01, longitude: 80.22, altitude: 120, battery_level: 72, mission: 'Flood area surveillance', assigned_incident_id: 1 },
-  { id: 2, drone_id: 'DRN-002', model: 'Parrot Anafi', status: 'standby', latitude: 13.05, longitude: 80.25, altitude: 0, battery_level: 95, mission: 'Standby - HQ', assigned_incident_id: null },
-  { id: 3, drone_id: 'DRN-003', model: 'DJI Matrice 30T', status: 'returning', latitude: 12.93, longitude: 80.15, altitude: 45, battery_level: 28, mission: 'Earthquake zone thermal scan', assigned_incident_id: 2 },
-  { id: 4, drone_id: 'DRN-004', model: 'Wingtra One', status: 'maintenance', latitude: 13.08, longitude: 80.21, altitude: 0, battery_level: 0, mission: 'Under maintenance', assigned_incident_id: null },
+  { id: 1, drone_id: 'DRN-001', model: 'DJI Matrice 300', status: 'airborne', latitude: 13.01, longitude: 80.22, altitude: 120, battery_level: 72, mission: 'Flood area surveillance', assigned_incident_id: 1, last_updated: '', is_simulated: true },
+  { id: 2, drone_id: 'DRN-002', model: 'Parrot Anafi', status: 'standby', latitude: 13.05, longitude: 80.25, altitude: 0, battery_level: 95, mission: 'Standby - HQ', assigned_incident_id: null, last_updated: '', is_simulated: true },
+  { id: 3, drone_id: 'DRN-003', model: 'DJI Matrice 30T', status: 'returning', latitude: 12.93, longitude: 80.15, altitude: 45, battery_level: 28, mission: 'Earthquake zone thermal scan', assigned_incident_id: 2, last_updated: '', is_simulated: true },
+  { id: 4, drone_id: 'DRN-004', model: 'Wingtra One', status: 'maintenance', latitude: 13.08, longitude: 80.21, altitude: 0, battery_level: 0, mission: 'Under maintenance', assigned_incident_id: null, last_updated: '', is_simulated: true },
 ];
 
 // ── Resource Card ──────────────────────────────────────────────────────────

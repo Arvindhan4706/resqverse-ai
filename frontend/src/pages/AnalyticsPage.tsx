@@ -132,18 +132,18 @@ const MOCK_SUMMARY: AnalyticsSummary = {
 };
 
 const MOCK_INCIDENTS: Incident[] = [
-  { id: 1, title: 'Adyar Flood', disaster_type: 'flood', severity: 'critical', status: 'active', location_name: 'Adyar', affected_population: 8400, created_at: '', updated_at: '', description: '', latitude: 0, longitude: 0, is_simulated: true },
-  { id: 2, title: 'Tambaram Quake', disaster_type: 'earthquake', severity: 'high', status: 'active', location_name: 'Tambaram', affected_population: 5200, created_at: '', updated_at: '', description: '', latitude: 0, longitude: 0, is_simulated: true },
-  { id: 3, title: 'Chemical Spill', disaster_type: 'chemical_leak', severity: 'high', status: 'monitoring', location_name: 'Sholinganallur', affected_population: 3100, created_at: '', updated_at: '', description: '', latitude: 0, longitude: 0, is_simulated: true },
-  { id: 4, title: 'Marina Cyclone', disaster_type: 'cyclone', severity: 'medium', status: 'monitoring', location_name: 'Marina', affected_population: 12000, created_at: '', updated_at: '', description: '', latitude: 0, longitude: 0, is_simulated: true },
-  { id: 5, title: 'Anna Nagar Fire', disaster_type: 'wildfire', severity: 'high', status: 'active', location_name: 'Anna Nagar', affected_population: 450, created_at: '', updated_at: '', description: '', latitude: 0, longitude: 0, is_simulated: true },
+  { id: 1, title: 'Adyar Flood', disaster_type: 'flood', severity: 'critical', status: 'active', location_name: 'Adyar', affected_population: 8400, created_at: '', updated_at: '', description: '', latitude: 0, longitude: 0, is_simulated: true, created_by: 'system' },
+  { id: 2, title: 'Tambaram Quake', disaster_type: 'earthquake', severity: 'high', status: 'active', location_name: 'Tambaram', affected_population: 5200, created_at: '', updated_at: '', description: '', latitude: 0, longitude: 0, is_simulated: true, created_by: 'system' },
+  { id: 3, title: 'Chemical Spill', disaster_type: 'chemical_leak', severity: 'high', status: 'monitoring', location_name: 'Sholinganallur', affected_population: 3100, created_at: '', updated_at: '', description: '', latitude: 0, longitude: 0, is_simulated: true, created_by: 'system' },
+  { id: 4, title: 'Marina Cyclone', disaster_type: 'cyclone', severity: 'medium', status: 'monitoring', location_name: 'Marina', affected_population: 12000, created_at: '', updated_at: '', description: '', latitude: 0, longitude: 0, is_simulated: true, created_by: 'system' },
+  { id: 5, title: 'Anna Nagar Fire', disaster_type: 'wildfire', severity: 'high', status: 'active', location_name: 'Anna Nagar', affected_population: 450, created_at: '', updated_at: '', description: '', latitude: 0, longitude: 0, is_simulated: true, created_by: 'system' },
 ];
 
 const MOCK_SHELTERS: Shelter[] = [
-  { id: 1, name: 'Srinivasa School', address: 'Adyar', latitude: 0, longitude: 0, total_capacity: 400, current_occupancy: 380, is_active: true, has_medical: true, has_food: true, contact_person: 'Mr. Kumar' },
-  { id: 2, name: 'Govt. Community Hall', address: 'Tambaram', latitude: 0, longitude: 0, total_capacity: 600, current_occupancy: 210, is_active: true, has_medical: false, has_food: true, contact_person: 'Ms. Priya' },
-  { id: 3, name: 'Church Relief Centre', address: 'T.Nagar', latitude: 0, longitude: 0, total_capacity: 250, current_occupancy: 195, is_active: true, has_medical: true, has_food: true, contact_person: 'Fr. Anthony' },
-  { id: 4, name: 'YMCA Shelter', address: 'Royapettah', latitude: 0, longitude: 0, total_capacity: 300, current_occupancy: 88, is_active: true, has_medical: false, has_food: true, contact_person: 'Mr. Das' },
+  { id: 1, name: 'Srinivasa School', address: 'Adyar', latitude: 0, longitude: 0, total_capacity: 400, current_occupancy: 380, is_active: true, has_medical: true, has_food: true, contact_person: 'Mr. Kumar', is_simulated: true },
+  { id: 2, name: 'Govt. Community Hall', address: 'Tambaram', latitude: 0, longitude: 0, total_capacity: 600, current_occupancy: 210, is_active: true, has_medical: false, has_food: true, contact_person: 'Ms. Priya', is_simulated: true },
+  { id: 3, name: 'Church Relief Centre', address: 'T.Nagar', latitude: 0, longitude: 0, total_capacity: 250, current_occupancy: 195, is_active: true, has_medical: true, has_food: true, contact_person: 'Fr. Anthony', is_simulated: true },
+  { id: 4, name: 'YMCA Shelter', address: 'Royapettah', latitude: 0, longitude: 0, total_capacity: 300, current_occupancy: 88, is_active: true, has_medical: false, has_food: true, contact_person: 'Mr. Das', is_simulated: true },
 ];
 
 // ── Main Component ─────────────────────────────────────────────────────────

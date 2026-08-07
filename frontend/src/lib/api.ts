@@ -155,12 +155,24 @@ export interface SimulationScenario {
 export interface AnalyticsSummary {
   total_incidents: number;
   active_incidents: number;
+  critical_incidents: number;
   people_affected: number;
   active_responders: number;
+  total_responders: number;
+  available_responders: number;
+  available_vehicles: number;
+  shelter_capacity: number;
+  shelter_occupancy: number;
+  shelter_occupancy_pct: number;
   available_shelter_capacity: number;
+  hospital_beds_total: number;
+  hospital_beds_available: number;
+  hospital_occupancy_pct: number;
   available_icu_beds: number;
   active_drones: number;
+  sensor_critical_alerts: number;
   critical_sensors: number;
+  pending_approvals: number;
 }
 
 // API methods using Supabase
@@ -351,29 +363,57 @@ export const simulationsApi = {
 // Derived from existing data since we no longer have a python backend to aggregate it
 export const analyticsApi = {
   summary: async (): Promise<AnalyticsSummary> => {
-    const [incidents, shelters, hospitals, responders, drones, sensors] = await Promise.all([
+    const [incidents, shelters, hospitals, responders, drones, sensors, approvals] = await Promise.all([
       supabase.from('incidents').select('*'),
       supabase.from('shelters').select('*'),
       supabase.from('hospitals').select('*'),
       supabase.from('responders').select('*'),
       supabase.from('drones').select('*'),
-      supabase.from('iot_sensors').select('*')
+      supabase.from('iot_sensors').select('*'),
+      supabase.from('agent_recommendations').select('*').eq('status', 'pending')
     ]);
 
     const activeIncidents = (incidents.data || []).filter(i => i.status === 'active');
     const totalAffected = activeIncidents.reduce((sum, inc) => sum + (inc.affected_population || 0), 0);
-    const availableShelter = (shelters.data || []).reduce((sum, s) => sum + ((s.total_capacity || 0) - (s.current_occupancy || 0)), 0);
+    const criticalIncidents = activeIncidents.filter(i => i.severity === 'critical').length;
+    
+    const shelterCapacity = (shelters.data || []).reduce((sum, s) => sum + (s.total_capacity || 0), 0);
+    const shelterOccupancy = (shelters.data || []).reduce((sum, s) => sum + (s.current_occupancy || 0), 0);
+    const availableShelter = shelterCapacity - shelterOccupancy;
+    const shelterPct = shelterCapacity > 0 ? (shelterOccupancy / shelterCapacity) * 100 : 0;
+    
+    const hospTotal = (hospitals.data || []).reduce((sum, h) => sum + (h.total_beds || 0), 0);
+    const hospAvailable = (hospitals.data || []).reduce((sum, h) => sum + (h.available_beds || 0), 0);
     const availableIcu = (hospitals.data || []).reduce((sum, h) => sum + (h.available_icu || 0), 0);
+    const hospPct = hospTotal > 0 ? ((hospTotal - hospAvailable) / hospTotal) * 100 : 0;
+    
+    const totalResp = (responders.data || []).length;
+    const activeResp = (responders.data || []).filter(r => r.status === 'deployed').length;
+    const availResp = (responders.data || []).filter(r => r.status === 'available').length;
+    
+    const criticalSensors = (sensors.data || []).filter(s => s.last_reading >= s.threshold_critical).length;
     
     return {
       total_incidents: (incidents.data || []).length,
       active_incidents: activeIncidents.length,
+      critical_incidents: criticalIncidents,
       people_affected: totalAffected,
-      active_responders: (responders.data || []).filter(r => r.status === 'deployed').length,
+      active_responders: activeResp,
+      total_responders: totalResp,
+      available_responders: availResp,
+      available_vehicles: 12, // Mocked for now, based on resources
+      shelter_capacity: shelterCapacity,
+      shelter_occupancy: shelterOccupancy,
+      shelter_occupancy_pct: shelterPct,
       available_shelter_capacity: availableShelter,
+      hospital_beds_total: hospTotal,
+      hospital_beds_available: hospAvailable,
+      hospital_occupancy_pct: hospPct,
       available_icu_beds: availableIcu,
       active_drones: (drones.data || []).filter(d => d.status === 'airborne').length,
-      critical_sensors: (sensors.data || []).filter(s => s.last_reading >= s.threshold_critical).length
+      sensor_critical_alerts: criticalSensors,
+      critical_sensors: criticalSensors,
+      pending_approvals: (approvals.data || []).length
     };
   }
 };

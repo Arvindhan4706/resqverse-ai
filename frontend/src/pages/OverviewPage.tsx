@@ -71,16 +71,18 @@ function ProgressBar({ value, max, color }: { value: number; max: number; color:
 
 const MOCK_SUMMARY: AnalyticsSummary = {
   total_incidents: 12, active_incidents: 5, critical_incidents: 2,
-  people_affected: 24750, available_responders: 18, total_responders: 35,
-  available_vehicles: 9, shelter_capacity: 3200, shelter_occupancy: 1850,
-  shelter_occupancy_pct: 57.8, hospital_beds_total: 640, hospital_beds_available: 218,
-  hospital_occupancy_pct: 65.9, pending_approvals: 3, sensor_critical_alerts: 4,
+  people_affected: 24750, active_responders: 18, total_responders: 35,
+  available_responders: 17, available_vehicles: 9, shelter_capacity: 3200,
+  shelter_occupancy: 1850, shelter_occupancy_pct: 57.8, available_shelter_capacity: 1350,
+  hospital_beds_total: 640, hospital_beds_available: 218, hospital_occupancy_pct: 65.9,
+  available_icu_beds: 45, active_drones: 4, sensor_critical_alerts: 4,
+  critical_sensors: 4, pending_approvals: 3,
 };
 
 const MOCK_INCIDENTS: Incident[] = [
-  { id: 1, title: 'Adyar River Flood', disaster_type: 'flood', severity: 'critical', status: 'active', location_name: 'Adyar, Chennai', affected_population: 8400, created_at: new Date(Date.now() - 3600000).toISOString(), updated_at: '', description: '', latitude: 13.0, longitude: 80.2, is_simulated: true },
-  { id: 2, title: 'Tambaram Seismic Activity', disaster_type: 'earthquake', severity: 'high', status: 'active', location_name: 'Tambaram, Chennai', affected_population: 5200, created_at: new Date(Date.now() - 7200000).toISOString(), updated_at: '', description: '', latitude: 12.9, longitude: 80.1, is_simulated: true },
-  { id: 3, title: 'Sholinganallur Chemical Spill', disaster_type: 'chemical_leak', severity: 'high', status: 'monitoring', location_name: 'Sholinganallur', affected_population: 3100, created_at: new Date(Date.now() - 10800000).toISOString(), updated_at: '', description: '', latitude: 12.9, longitude: 80.2, is_simulated: true },
+  { id: 1, title: 'Adyar River Flood', disaster_type: 'flood', severity: 'critical', status: 'active', location_name: 'Adyar, Chennai', affected_population: 8400, created_at: new Date(Date.now() - 3600000).toISOString(), updated_at: '', description: '', latitude: 13.0, longitude: 80.2, is_simulated: true, created_by: 'system' },
+  { id: 2, title: 'Tambaram Seismic Activity', disaster_type: 'earthquake', severity: 'high', status: 'active', location_name: 'Tambaram, Chennai', affected_population: 5200, created_at: new Date(Date.now() - 7200000).toISOString(), updated_at: '', description: '', latitude: 12.9, longitude: 80.1, is_simulated: true, created_by: 'system' },
+  { id: 3, title: 'Sholinganallur Chemical Spill', disaster_type: 'chemical_leak', severity: 'high', status: 'monitoring', location_name: 'Sholinganallur', affected_population: 3100, created_at: new Date(Date.now() - 10800000).toISOString(), updated_at: '', description: '', latitude: 12.9, longitude: 80.2, is_simulated: true, created_by: 'system' },
 ];
 
 export function OverviewPage() {
