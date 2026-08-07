@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 from models import (
     Incident, Hospital, Shelter, Responder, Resource,
-    IoTSensor, Drone, AgentRecommendation, AuditLog
+    IoTSensor, Drone, AgentRecommendation, AuditLog,
+    SimulationScenario
 )
 
 
@@ -252,6 +253,75 @@ def seed_recommendations(db: Session):
     print(f"Seeded {len(recommendations)} agent recommendations.")
 
 
+def seed_simulation_scenarios(db: Session):
+    scenarios = [
+        SimulationScenario(
+            name="Chennai Flash Flood (Adyar)",
+            scenario_type="flood",
+            severity=8,
+            parameters={
+                "location_name": "Adyar Basin",
+                "latitude": 13.0067,
+                "longitude": 80.2206,
+                "affected_population": 45000,
+                "water_level_rise_m": 1.5
+            }
+        ),
+        SimulationScenario(
+            name="T. Nagar High-Rise Collapse",
+            scenario_type="earthquake",
+            severity=7,
+            parameters={
+                "location_name": "T. Nagar Commercial District",
+                "latitude": 13.0418,
+                "longitude": 80.2341,
+                "affected_population": 800,
+                "building_type": "high_rise_commercial"
+            }
+        ),
+        SimulationScenario(
+            name="Guindy National Park Wildfire",
+            scenario_type="wildfire",
+            severity=6,
+            parameters={
+                "location_name": "Guindy National Park",
+                "latitude": 13.0067,
+                "longitude": 80.2100,
+                "affected_population": 250,
+                "wind_speed_kmh": 45
+            }
+        ),
+        SimulationScenario(
+            name="Cyclone Category 4 Landfall",
+            scenario_type="cyclone",
+            severity=9,
+            parameters={
+                "location_name": "Marina Coastal Belt",
+                "latitude": 13.0500,
+                "longitude": 80.2824,
+                "affected_population": 120000,
+                "surge_height_m": 2.2
+            }
+        ),
+        SimulationScenario(
+            name="Manali Chemical Plant Leak",
+            scenario_type="chemical_leak",
+            severity=8,
+            parameters={
+                "location_name": "Manali Industrial Zone",
+                "latitude": 13.1667,
+                "longitude": 80.2556,
+                "affected_population": 5000,
+                "chemical_type": "Ammonia Gas"
+            }
+        ),
+    ]
+    for s in scenarios:
+        db.add(s)
+    db.commit()
+    print(f"Seeded {len(scenarios)} simulation scenarios.")
+
+
 def run_seed(db: Session):
     print("Starting seed process for Chennai, Tamil Nadu (SIMULATED DATA)...")
     seed_incidents(db)
@@ -262,4 +332,5 @@ def run_seed(db: Session):
     seed_sensors(db)
     seed_drones(db)
     seed_recommendations(db)
+    seed_simulation_scenarios(db)
     print("Seed complete.")

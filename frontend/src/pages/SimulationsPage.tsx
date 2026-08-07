@@ -5,6 +5,8 @@ import {
   ChevronRight, BarChart2
 } from 'lucide-react';
 
+import { simulationsApi } from '../lib/api';
+
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type DisasterType = 'flood' | 'earthquake' | 'wildfire' | 'cyclone' | 'chemical_leak';
@@ -176,6 +178,7 @@ export function SimulationsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [severity, setSeverity] = useState(7);
   const [status, setStatus] = useState<SimStatus>('idle');
+  const [activeSimId, setActiveSimId] = useState<number | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
   const [elapsed, setElapsed] = useState(0);
   const logRef = useRef<HTMLDivElement>(null);
@@ -222,16 +225,40 @@ export function SimulationsPage() {
     return () => { if (logTimerRef.current) clearInterval(logTimerRef.current); };
   }, [status, selected]);
 
-  const handleLaunch = () => {
+  const handleLaunch = async () => {
     if (!selected) return;
+    try {
+      const sim = await simulationsApi.create({
+        name: selected.name,
+        scenario_type: selected.type,
+        severity: severity,
+        parameters: { location_name: selected.location }
+      });
+      await simulationsApi.start(sim.id);
+      setActiveSimId(sim.id);
+    } catch (e) {
+      console.warn("Backend not running, proceeding in local UI mode only.");
+    }
     setLogs([selected.logMessages[0]]);
     logIndexRef.current = 0;
     setElapsed(0);
     setStatus('running');
   };
 
-  const handlePause = () => setStatus(s => s === 'running' ? 'paused' : 'running');
-  const handleStop = () => {
+  const handlePause = async () => {
+    if (status === 'running' && activeSimId) {
+      try { await simulationsApi.pause(activeSimId); } catch {}
+    } else if (status === 'paused' && activeSimId) {
+      try { await simulationsApi.start(activeSimId); } catch {}
+    }
+    setStatus(s => s === 'running' ? 'paused' : 'running');
+  };
+  
+  const handleStop = async () => {
+    if (activeSimId) {
+      try { await simulationsApi.stop(activeSimId); } catch {}
+      setActiveSimId(null);
+    }
     setStatus('idle');
     setLogs([]);
     logIndexRef.current = 0;

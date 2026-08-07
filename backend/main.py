@@ -8,7 +8,7 @@ from seed_data import run_seed
 from routes import (
     incidents, hospitals, shelters, resources,
     responders, sensors, drones, recommendations,
-    audit, analytics
+    audit, analytics, simulations
 )
 
 # Create all tables
@@ -65,3 +65,4 @@ app.include_router(drones.router, prefix="/api")
 app.include_router(recommendations.router, prefix="/api")
 app.include_router(audit.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
+app.include_router(simulations.router, prefix="/api")
